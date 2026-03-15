@@ -1,81 +1,55 @@
-"use client";
+<section className="container-shop py-12 md:py-20">
 
-/*
-Hero Section moderne pour MHDS SHOP
+<div className="flex flex-col md:flex-row items-center gap-10">
 
-Ajouts :
-- badges e-commerce
-- icônes modernes
-- section avantages
-*/
+{/* TEXTE */}
 
-import { FaShippingFast, FaShieldAlt, FaHeadset } from "react-icons/fa";
+<div className="flex-1 text-center md:text-left">
 
-export default function Hero() {
-  return (
-    <section className="w-full py-24 bg-gray-50 flex items-center">
+<p className="bg-blue-100 text-blue-600 inline-block px-4 py-1 rounded-full text-sm mb-4">
+Boutique e-commerce moderne
+</p>
 
-      <div className="w-full px-10 grid md:grid-cols-2 items-center gap-10">
+<h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">
 
-        {/* Texte */}
-        <div>
+Bienvenue sur  
+<span className="text-blue-600 block">
+MHDS SHOP
+</span>
 
-          {/* Badge */}
-          <span className="bg-blue-100 text-blue-600 px-4 py-1 rounded-full text-sm font-semibold">
-            Boutique e-commerce moderne
-          </span>
+</h1>
 
-          {/* Titre */}
-          <h1 className="text-5xl font-extrabold text-gray-900 leading-tight mt-4">
-            Bienvenue sur <span className="text-blue-600">MHDS SHOP</span>
-          </h1>
+<p className="text-gray-600 mt-4 max-w-lg mx-auto md:mx-0">
 
-          {/* Description */}
-          <p className="mt-6 text-gray-600 text-lg">
-            Découvrez des produits de qualité sélectionnés spécialement pour vous.
-            Commandez facilement et recevez vos produits rapidement.
-          </p>
+Découvrez des produits de qualité sélectionnés spécialement pour vous.
+Commandez facilement et recevez vos produits rapidement.
 
-          <a
-          href="/products"
-          className="inline-block mt-8 bg-blue-600 text-white px-8 py-3 rounded-lg text-lg hover:bg-blue-700 transition shadow-lg"
-          >
-            Voir nos produits
-          </a>
+</p>
 
-          {/* Avantages */}
-          <div className="flex gap-8 mt-10">
+<a
+href="/products"
+className="inline-block mt-6 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+>
 
-            <div className="flex items-center gap-2 text-gray-700">
-              <FaShippingFast className="text-blue-600 text-xl"/>
-              Livraison rapide
-            </div>
+Voir nos produits
 
-            <div className="flex items-center gap-2 text-gray-700">
-              <FaShieldAlt className="text-blue-600 text-xl"/>
-              Paiement sécurisé
-            </div>
+</a>
 
-            <div className="flex items-center gap-2 text-gray-700">
-              <FaHeadset className="text-blue-600 text-xl"/>
-              Assistance client
-            </div>
+</div>
 
-          </div>
 
-        </div>
+{/* IMAGE */}
 
-        {/* Image */}
-        <div>
-          <img
-            src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da"
-            alt="shopping"
-            className="w-full rounded-xl shadow-lg"
-          />
-        </div>
+<div className="flex-1 w-full">
 
-      </div>
+<img
+src="/hero.jpg"
+alt="Produits"
+className="w-full max-w-md mx-auto rounded-xl shadow-lg"
+/>
 
-    </section>
-  );
-}
+</div>
+
+</div>
+
+</section>

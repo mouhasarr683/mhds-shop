@@ -9,85 +9,67 @@ export default function ProductCard({ product }) {
 
   const { addToCart, cart } = useCart();
 
-  const [selectedVariant, setSelectedVariant] = useState(null);
+  const [selectedVariant,setSelectedVariant] = useState(null);
   const [error,setError] = useState("");
   const [showDescription,setShowDescription] = useState(false);
 
-  /*
-  Calcul stock restant
-  */
+  const getRemainingStock = (variant)=>{
 
-  const getRemainingStock = (variant) => {
-
-    const itemInCart = cart.find(
-      (item) =>
-        item.id === product.id &&
-        item.size === variant.size
+    const item = cart.find(
+      i=> i.id === product._id && i.size === variant.size
     );
 
-    const qty = itemInCart ? itemInCart.quantity : 0;
+    const qty = item ? item.quantity : 0;
 
     return variant.stock - qty;
 
   };
 
-  /*
-  Ajouter au panier
-  */
-
-  const handleAddToCart = () => {
+  const handleAddToCart = ()=>{
 
     if(!selectedVariant){
-
       setError("Veuillez choisir une taille");
       return;
-
     }
 
     const remaining = getRemainingStock(selectedVariant);
 
-    if(remaining <= 0){
-      return;
-    }
+    if(remaining <= 0) return;
 
     setError("");
 
     addToCart({
-
       ...product,
       size:selectedVariant.size,
       stock:selectedVariant.stock
-
     });
 
   };
 
   return (
 
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition duration-300">
+    <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden">
 
-      {/* IMAGE CLIQUABLE */}
-
-      <Link href={`/product/${product.id}`}>
+      <Link href={`/product/${product._id}`}>
 
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-60 object-cover cursor-pointer"
+          className="w-full h-48 md:h-60 object-cover"
         />
 
       </Link>
 
-      <div className="p-5">
-
-        {/* NOM + DETAILS */}
+      <div className="p-4 md:p-5">
 
         <div className="flex justify-between items-center">
 
-          <Link href={`/product/${product.id}`}>
+          <Link href={`/product/${product._id}`}>
 
-            <h3 className="text-lg font-bold text-gray-800 hover:text-blue-600 cursor-pointer">
+            <h3 className="text-base md:text-lg font-bold text-gray-800 hover:text-blue-600">
+
               {product.name}
+
             </h3>
 
           </Link>
@@ -99,8 +81,6 @@ export default function ProductCard({ product }) {
 
         </div>
 
-        {/* DESCRIPTION */}
-
         {showDescription && (
 
           <p className="text-gray-600 text-sm mt-2">
@@ -109,13 +89,9 @@ export default function ProductCard({ product }) {
 
         )}
 
-        {/* PRIX */}
-
         <p className="text-blue-600 font-bold mt-2">
           {product.price} FCFA
         </p>
-
-        {/* CHOIX VARIANTE */}
 
         <select
           className="mt-3 w-full border text-black rounded-lg p-2"
@@ -137,45 +113,25 @@ export default function ProductCard({ product }) {
 
             const remaining = getRemainingStock(v);
 
-            return (
+            return(
+
               <option key={v.size} value={v.size}>
                 {v.size} (stock : {remaining})
               </option>
+
             )
 
           })}
 
         </select>
 
-        {/* MESSAGE ERREUR */}
-
         {error && (
 
-          <p className="text-red-500 text-sm mt-2 font-semibold">
+          <p className="text-red-500 text-sm mt-2">
             {error}
           </p>
 
         )}
-
-        {/* STOCK */}
-
-        {selectedVariant && (
-
-          getRemainingStock(selectedVariant) > 0 ?
-
-          <p className="text-green-600 text-sm mt-2">
-            Stock restant : {getRemainingStock(selectedVariant)}
-          </p>
-
-          :
-
-          <p className="text-red-500 text-sm mt-2 font-semibold">
-            Rupture de stock
-          </p>
-
-        )}
-
-        {/* BOUTON PANIER */}
 
         <button
 
@@ -186,24 +142,13 @@ export default function ProductCard({ product }) {
             getRemainingStock(selectedVariant) <= 0
           }
 
-          className={`mt-4 w-full py-2 rounded-lg flex items-center justify-center gap-2 transition
-          
-          ${
-            selectedVariant &&
-            getRemainingStock(selectedVariant) <= 0
-            ?
-            "bg-gray-400 cursor-not-allowed text-white"
-            :
-            "bg-blue-600 hover:bg-blue-700 text-white"
-          }
-          
-          `}
+          className="mt-4 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 transition"
 
         >
 
           <FaShoppingCart/>
 
-          Ajouter au panier
+          Ajouter
 
         </button>
 
@@ -212,4 +157,5 @@ export default function ProductCard({ product }) {
     </div>
 
   );
+
 }

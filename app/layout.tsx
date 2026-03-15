@@ -2,15 +2,11 @@ import { CartProvider } from "../context/CartContext";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
-
-/*
-Import de la police Poppins
-et définition du type children pour TypeScript
-*/
+import WhatsAppButton from "../components/WhatsAppButton";
 
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400","500","600","700"],
 });
 
 export const metadata = {
@@ -18,22 +14,35 @@ export const metadata = {
   description: "Boutique e-commerce moderne",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
-}: {
+}:{
   children: ReactNode;
-}) {
+}){
+
   return (
+
     <html lang="fr">
+
       <body className={poppins.className}>
 
-      <CartProvider>
+        <CartProvider>
 
-      {children}
+          {children}
 
-      </CartProvider>
+        </CartProvider>
+
+        <WhatsAppButton/>
 
       </body>
+
     </html>
+
   );
+
 }

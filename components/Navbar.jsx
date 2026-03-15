@@ -1,105 +1,66 @@
 "use client";
 
-/*
-Navbar professionnelle pour MHDS SHOP
-
-Contient :
-- Logo
-- Navigation
-- Barre de recherche
-- Panier dynamique
-*/
-
 import { FaShoppingCart } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 
-export default function Navbar() {
+export default function Navbar(){
 
-  /*
-  Récupération du panier
-  */
+const { cart } = useCart();
 
-  const { cart } = useCart();
+const totalItems = cart.reduce(
+(total,item)=> total + item.quantity,
+0
+);
 
-  /*
-  Calcul du nombre total d'articles
-  */
+return(
 
-  const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+<nav className="bg-black w-full">
 
-  return (
+<div className="container-shop flex items-center justify-between py-4">
 
-    <nav className="w-full bg-black shadow-md">
+{/* Logo */}
 
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+<Link href="/">
+<h1 className="text-xl md:text-3xl font-bold text-blue-500">
+MHDS SHOP
+</h1>
+</Link>
 
-        {/* Logo */}
+{/* Menu toujours visible */}
 
-        <Link href="/">
-          <h1 className="text-3xl font-extrabold tracking-wide text-blue-500 cursor-pointer">
-            MHDS SHOP
-          </h1>
-        </Link>
+<div className="flex gap-4 md:gap-8 text-white text-sm md:text-base">
 
+<Link href="/" className="hover:text-blue-400">
+Accueil
+</Link>
 
-        {/* Menu */}
+<Link href="/products" className="hover:text-blue-400">
+Produits
+</Link>
 
-        <ul className="hidden md:flex space-x-8 text-white font-medium">
+</div>
 
-          <Link href="/">
-            <li className="hover:text-blue-400 cursor-pointer">
-              Accueil
-            </li>
-          </Link>
+{/* Panier */}
 
-          <Link href="/products">
-            <li className="hover:text-blue-400 cursor-pointer">
-              Produits
-            </li>
-          </Link>
+<Link href="/cart">
 
-          <li className="hover:text-blue-400 cursor-pointer">
-            Catégories
-          </li>
+<div className="relative cursor-pointer">
 
-        </ul>
+<FaShoppingCart className="text-white text-xl md:text-2xl"/>
 
+<span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs px-2 rounded-full">
+{totalItems}
+</span>
 
-        {/* Barre de recherche */}
+</div>
 
-        <input
-          type="text"
-          placeholder="Rechercher un produit..."
-          className="hidden md:block border rounded-lg px-3 py-1 focus:outline-none"
-        />
+</Link>
 
+</div>
 
-        {/* Panier */}
+</nav>
 
-        <Link href="/cart">
+)
 
-          <div className="relative cursor-pointer">
-
-            {/* Icône panier */}
-
-            <FaShoppingCart className="text-3xl text-white hover:text-blue-400 transition duration-300" />
-
-            {/* Badge nombre produits */}
-
-            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-
-              {totalItems}
-
-            </span>
-
-          </div>
-
-        </Link>
-
-      </div>
-
-    </nav>
-
-  );
 }
