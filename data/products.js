@@ -42,7 +42,7 @@ const products = [
     _id: "4",
     name: "Hoodie Fashion",
     price: 22000,
-    image: "https://images.unsplash.com/photo-1556821840-3a9fbc4c0b1c",
+    image: "https://images.unsplash.com/photo-1601063476271-a159c71ab0b3?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGhvb2RpZXxlbnwwfHwwfHx8MA%3D%3D",
     description: "Hoodie chaud et confortable pour toutes les saisons.",
     variants: [
       { size: "M", stock: 3 },
