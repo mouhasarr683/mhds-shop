@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import type { ReactNode } from "react";
 import WhatsAppButton from "../components/WhatsAppButton";
+import { WishlistProvider } from "../context/WishlistContext";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -32,9 +33,11 @@ export default function RootLayout({
       <body className={poppins.className}>
 
         <CartProvider>
+        <WishlistProvider> 
 
           {children}
 
+        </WishlistProvider> 
         </CartProvider>
 
         <WhatsAppButton/>
