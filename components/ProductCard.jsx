@@ -16,7 +16,7 @@ export default function ProductCard({ product }) {
   const getRemainingStock = (variant)=>{
 
     const item = cart.find(
-      i=> i.id === product._id && i.size === variant.size
+      i=> i._id === product._id && i.size === variant.size
     );
 
     const qty = item ? item.quantity : 0;
@@ -24,6 +24,11 @@ export default function ProductCard({ product }) {
     return variant.stock - qty;
 
   };
+
+  const totalStock = product.variants.reduce(
+    (total,v)=> total + getRemainingStock(v),
+    0
+  );
 
   const handleAddToCart = ()=>{
 
@@ -34,7 +39,10 @@ export default function ProductCard({ product }) {
 
     const remaining = getRemainingStock(selectedVariant);
 
-    if(remaining <= 0) return;
+    if(remaining <= 0){
+      setError("Rupture de stock");
+      return;
+    }
 
     setError("");
 
@@ -50,6 +58,8 @@ export default function ProductCard({ product }) {
 
     <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden">
 
+      {/* IMAGE */}
+
       <Link href={`/product/${product._id}`}>
 
         <img
@@ -62,14 +72,14 @@ export default function ProductCard({ product }) {
 
       <div className="p-4 md:p-5">
 
+        {/* NOM + INFO */}
+
         <div className="flex justify-between items-center">
 
           <Link href={`/product/${product._id}`}>
 
             <h3 className="text-base md:text-lg font-bold text-gray-800 hover:text-blue-600">
-
               {product.name}
-
             </h3>
 
           </Link>
@@ -81,6 +91,21 @@ export default function ProductCard({ product }) {
 
         </div>
 
+        {/* STOCK GLOBAL */}
+
+        <p className={`text-sm mt-1 font-semibold ${
+          totalStock === 0 ? "text-red-500" : "text-green-600"
+        }`}>
+
+          {totalStock === 0
+            ? "Rupture de stock"
+            : `Stock restant : ${totalStock}`
+          }
+
+        </p>
+
+        {/* DESCRIPTION */}
+
         {showDescription && (
 
           <p className="text-gray-600 text-sm mt-2">
@@ -89,9 +114,13 @@ export default function ProductCard({ product }) {
 
         )}
 
+        {/* PRIX */}
+
         <p className="text-blue-600 font-bold mt-2">
           {product.price} FCFA
         </p>
+
+        {/* VARIANTS */}
 
         <select
           className="mt-3 w-full border text-black rounded-lg p-2"
@@ -125,6 +154,8 @@ export default function ProductCard({ product }) {
 
         </select>
 
+        {/* ERREUR */}
+
         {error && (
 
           <p className="text-red-500 text-sm mt-2">
@@ -132,6 +163,8 @@ export default function ProductCard({ product }) {
           </p>
 
         )}
+
+        {/* BOUTON */}
 
         <button
 
@@ -142,13 +175,13 @@ export default function ProductCard({ product }) {
             getRemainingStock(selectedVariant) <= 0
           }
 
-          className="mt-4 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 transition"
+          className="mt-4 w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2 transition disabled:bg-gray-400"
 
         >
 
           <FaShoppingCart/>
 
-          Ajouter
+          Ajouter au panier
 
         </button>
 

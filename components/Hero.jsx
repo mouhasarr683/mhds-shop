@@ -1,4 +1,12 @@
-<section className="container-shop py-12 md:py-20">
+"use client";
+
+export default function Hero() {
+
+return (
+
+<section className="bg-white">
+
+<div className="max-w-7xl mx-auto px-4 md:px-8 py-12 md:py-20">
 
 <div className="flex flex-col md:flex-row items-center gap-10">
 
@@ -12,14 +20,15 @@ Boutique e-commerce moderne
 
 <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight">
 
-Bienvenue sur  
+Bienvenue sur
+
 <span className="text-blue-600 block">
 MHDS SHOP
 </span>
 
 </h1>
 
-<p className="text-gray-600 mt-4 max-w-lg mx-auto md:mx-0">
+<p className="text-gray-600 mt-4 max-w-md mx-auto md:mx-0">
 
 Découvrez des produits de qualité sélectionnés spécialement pour vous.
 Commandez facilement et recevez vos produits rapidement.
@@ -40,16 +49,22 @@ Voir nos produits
 
 {/* IMAGE */}
 
-<div className="flex-1 w-full">
+<div className="flex-1 w-full flex justify-center">
 
 <img
-src="/hero.jpg"
-alt="Produits"
-className="w-full max-w-md mx-auto rounded-xl shadow-lg"
+src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=1200"
+alt="Shopping en ligne"
+className="w-full max-w-sm md:max-w-md lg:max-w-lg rounded-xl shadow-lg object-cover"
 />
 
 </div>
 
 </div>
 
+</div>
+
 </section>
+
+);
+
+}

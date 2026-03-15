@@ -3,261 +3,317 @@
 import { useCart } from "../../context/CartContext";
 import Navbar from "../../components/Navbar";
 import { useState } from "react";
-import { FaTruck, FaMoneyBillWave } from "react-icons/fa";
+import { useRouter } from "next/navigation";
+import { FaTruck } from "react-icons/fa";
 
 export default function CheckoutPage() {
 
-  const { cart } = useCart();
+const { cart } = useCart();
+const router = useRouter();
 
-  const [firstName,setFirstName] = useState("");
-  const [lastName,setLastName] = useState("");
-  const [phone,setPhone] = useState("");
-  const [email,setEmail] = useState("");
-  const [address,setAddress] = useState("");
-  const [city,setCity] = useState("");
+const [firstName,setFirstName] = useState("");
+const [lastName,setLastName] = useState("");
+const [phone,setPhone] = useState("");
+const [email,setEmail] = useState("");
+const [address,setAddress] = useState("");
+const [city,setCity] = useState("");
 
-  const deliveryFee =
-    city === "dakar" ? 2000 :
-    city === "hors_dakar" ? 3000 :
-    0;
+/* FRAIS LIVRAISON */
 
-  const totalProducts = cart.reduce(
-    (total,item)=> total + item.price * item.quantity,
-    0
-  );
+const deliveryFee =
+city === "Dakar" ? 2000 :
+city === "Hors Dakar" ? 3000 :
+0;
 
-  const total = totalProducts + deliveryFee;
+const totalProducts = cart.reduce(
+(total,item)=> total + item.price * item.quantity,
+0
+);
 
-  /*
-  ENVOI COMMANDE WHATSAPP
-  */
+const total = totalProducts + deliveryFee;
 
-  const handleOrder = () => {
 
-    if(!firstName || !lastName || !phone || !address || !city){
-      alert("Veuillez remplir les informations importantes");
-      return;
-    }
+/* VALIDATION COMMANDE */
 
-    let message = "🛒 Nouvelle commande MHDS SHOP%0A%0A";
+const handleOrder = async () => {
 
-    message += "*Client*%0A";
-    message += `Prénom: ${firstName}%0A`;
-    message += `Nom: ${lastName}%0A`;
-    message += `Téléphone: ${phone}%0A`;
-    message += `Email: ${email}%0A`;
-    message += `Adresse: ${address}%0A`;
-    message += `Zone: ${city}%0A%0A`;
+if(cart.length === 0){
+alert("Votre panier est vide");
+return;
+}
 
-    message += "*Produits*%0A";
+if(!city){
+alert("Veuillez choisir votre ville");
+return;
+}
 
-    cart.forEach((item)=>{
+if(!firstName || !lastName || !phone || !address){
+alert("Veuillez remplir les informations importantes");
+return;
+}
 
-      message += `${item.name} (${item.size}) x${item.quantity} - ${item.price * item.quantity} FCFA%0A`;
+/* FORMAT PRODUITS */
 
-    });
-
-    message += `%0ASous-total: ${totalProducts} FCFA`;
-    message += `%0ALivraison: ${deliveryFee} FCFA`;
-    message += `%0ATotal: ${total} FCFA`;
-
-    const phoneNumber = "221774865299";
-
-    const url = `https://wa.me/${phoneNumber}?text=${message}`;
-
-    window.open(url,"_blank");
+let products = "";
 
-  };
+cart.forEach((item)=>{
+products += `${item.name} (${item.size}) x${item.quantity} - ${item.price * item.quantity} FCFA\n`;
+});
 
-  return (
+/* ENVOI EMAIL ADMIN */
 
-    <div className="bg-gray-100 min-h-screen">
+await fetch("https://formsubmit.co/ajax/mouhasarr676@gmail.com", {
 
-      <Navbar/>
+method: "POST",
 
-      <section className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-16 grid md:grid-cols-2 gap-10">
+headers: {
+"Content-Type": "application/json",
+"Accept": "application/json"
+},
 
-        {/* FORMULAIRE CLIENT */}
+body: JSON.stringify({
 
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-md">
+prenom:firstName,
+nom:lastName,
+telephone:phone,
+email:email,
+ville:city,
+adresse:address,
+produits:products,
+sous_total:totalProducts,
+livraison:deliveryFee,
+total:total
 
-          <h2 className="text-2xl font-bold text-black mb-6">
-            Informations Client
-          </h2>
+})
 
-          <div className="space-y-4">
+});
 
-            <input
-              type="text"
-              placeholder="Prénom"
-              value={firstName}
-              onChange={(e)=>setFirstName(e.target.value)}
-              className="w-full text-black border p-3 rounded-lg"
-            />
+/* REDIRECTION CLIENT */
 
-            <input
-              type="text"
-              placeholder="Nom"
-              value={lastName}
-              onChange={(e)=>setLastName(e.target.value)}
-              className="w-full text-black border p-3 rounded-lg"
-            />
+router.push("/order-success");
 
-            <input
-              type="tel"
-              placeholder="Téléphone"
-              value={phone}
-              onChange={(e)=>setPhone(e.target.value)}
-              className="w-full text-black border p-3 rounded-lg"
-            />
+};
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e)=>setEmail(e.target.value)}
-              className="w-full text-black border p-3 rounded-lg"
-            />
 
-            <input
-              type="text"
-              placeholder="Adresse complète"
-              value={address}
-              onChange={(e)=>setAddress(e.target.value)}
-              className="w-full text-black border p-3 rounded-lg"
-            />
+return(
 
-            {/* ZONE LIVRAISON */}
+<div className="bg-gray-100 min-h-screen">
 
-            <div>
+<Navbar/>
 
-              <p className="text-black font-semibold mb-3">
-                Zone de livraison
-              </p>
+<section className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-16 grid md:grid-cols-2 gap-10">
 
-              <div className="flex gap-3 flex-wrap">
+{/* FORMULAIRE CLIENT */}
 
-                <button
-                  type="button"
-                  onClick={()=>setCity("Dakar")}
-                  className={`px-4 py-2 rounded-lg border ${
-                    city==="Dakar"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-black"
-                  }`}
-                >
-                  Dakar
-                </button>
+<div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg">
 
-                <button
-                  type="button"
-                  onClick={()=>setCity("Hors Dakar")}
-                  className={`px-4 py-2 rounded-lg border ${
-                    city==="Hors Dakar"
-                    ? "bg-blue-600 text-white"
-                    : "bg-white text-black"
-                  }`}
-                >
-                  Hors Dakar
-                </button>
+<h2 className="text-2xl font-bold text-black mb-6">
+Informations de livraison
+</h2>
+
+<div className="space-y-4">
 
-              </div>
+{/* CHOIX VILLE */}
+
+<div>
 
-            </div>
+<p className="text-black font-semibold mb-3">
+Choisissez votre ville
+</p>
 
-          </div>
+<div className="flex gap-3">
 
-        </div>
+<button
+type="button"
+onClick={()=>setCity("Dakar")}
+className={`flex-1 py-3 rounded-lg border font-semibold transition ${
+city==="Dakar"
+? "bg-blue-600 text-white"
+: "bg-white text-black"
+}`}
+>
+Dakar
+</button>
 
+<button
+type="button"
+onClick={()=>setCity("Hors Dakar")}
+className={`flex-1 py-3 rounded-lg border font-semibold transition ${
+city==="Hors Dakar"
+? "bg-blue-600 text-white"
+: "bg-white text-black"
+}`}
+>
+Hors Dakar
+</button>
 
-        {/* RECAP COMMANDE */}
+</div>
 
-        <div className="bg-white p-6 md:p-8 rounded-xl shadow-md">
+</div>
 
-          <h2 className="text-2xl text-black font-bold mb-6">
-            Récapitulatif de la commande
-          </h2>
 
-          {cart.length === 0 ? (
+{/* FORMULAIRE */}
 
-            <p className="text-gray-500">
-              Votre panier est vide
-            </p>
+{city && (
 
-          ) : (
+<>
 
-            <div className="space-y-4">
+<input
+type="text"
+placeholder="Prénom"
+value={firstName}
+onChange={(e)=>setFirstName(e.target.value)}
+className="w-full text-black border p-3 rounded-lg"
+/>
 
-              {cart.map((item)=>(
+<input
+type="text"
+placeholder="Nom"
+value={lastName}
+onChange={(e)=>setLastName(e.target.value)}
+className="w-full text-black border p-3 rounded-lg"
+/>
 
-                <div
-                  key={item._id + item.size}
-                  className="flex justify-between border-b pb-2"
-                >
+<input
+type="tel"
+placeholder="Téléphone"
+value={phone}
+onChange={(e)=>setPhone(e.target.value)}
+className="w-full text-black border p-3 rounded-lg"
+/>
 
-                  <p className="text-black">
-                    {item.name} ({item.size}) x {item.quantity}
-                  </p>
+<input
+type="email"
+placeholder="Email (optionnel)"
+value={email}
+onChange={(e)=>setEmail(e.target.value)}
+className="w-full text-black border p-3 rounded-lg"
+/>
 
-                  <p className="text-black font-semibold">
-                    {item.price * item.quantity} FCFA
-                  </p>
+<input
+type="text"
+placeholder="Adresse complète"
+value={address}
+onChange={(e)=>setAddress(e.target.value)}
+className="w-full text-black border p-3 rounded-lg"
+/>
 
-                </div>
+</>
 
-              ))}
+)}
 
-            </div>
+</div>
 
-          )}
+</div>
 
-          <hr className="my-6"/>
 
-          <div className="flex justify-between text-black mb-2">
-            <p>Sous-total</p>
-            <p>{totalProducts} FCFA</p>
-          </div>
+{/* RECAP COMMANDE */}
 
-          <div className="flex justify-between text-black mb-2">
-            <p>Livraison</p>
-            <p>{deliveryFee} FCFA</p>
-          </div>
+<div className="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100">
 
-          <div className="flex justify-between mt-4">
+<h2 className="text-2xl text-black font-bold mb-6">
+Récapitulatif de la commande
+</h2>
 
-            <p className="text-xl text-black font-bold">
-              Total
-            </p>
+{cart.length === 0 ? (
 
-            <p className="text-xl text-blue-600 font-bold">
-              {total} FCFA
-            </p>
+<p className="text-gray-500 text-center py-10">
+Votre panier est vide
+</p>
 
-          </div>
+) : (
 
-          {/* BOUTONS */}
+<div className="space-y-4">
 
-          <div className="mt-8 space-y-3">
+{cart.map((item)=>(
 
-            <button
-              onClick={handleOrder}
-              className="w-full flex items-center justify-center gap-3 bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-semibold"
-            >
+<div
+key={item._id + item.size}
+className="flex justify-between items-center bg-gray-50 p-4 rounded-lg"
+>
 
-              <FaTruck/>
+<div className="flex items-center gap-4">
 
-              Commander via WhatsApp
+<img
+src={item.image}
+className="w-14 h-14 object-cover rounded-lg"
+/>
 
-            </button>
+<div>
 
-          </div>
+<p className="text-black font-semibold">
+{item.name}
+</p>
 
-        </div>
+<p className="text-gray-500 text-sm">
+Taille : {item.size} • Quantité : {item.quantity}
+</p>
 
-      </section>
+</div>
 
-    </div>
+</div>
 
-  );
+<p className="text-black font-bold">
+{item.price * item.quantity} FCFA
+</p>
+
+</div>
+
+))}
+
+</div>
+
+)}
+
+<hr className="my-6"/>
+
+<div className="space-y-3">
+
+<div className="flex justify-between text-gray-600">
+<p>Sous-total</p>
+<p className="font-semibold">{totalProducts} FCFA</p>
+</div>
+
+<div className="flex justify-between text-gray-600">
+<p>Livraison</p>
+<p className={`font-semibold ${
+deliveryFee === 0 ? "text-gray-400" : "text-orange-500"
+}`}>
+{deliveryFee} FCFA
+</p>
+</div>
+
+</div>
+
+<div className="flex justify-between items-center mt-6 bg-blue-50 p-4 rounded-xl">
+
+<p className="text-lg text-black font-bold">
+Total
+</p>
+
+<p className="text-2xl text-blue-600 font-extrabold">
+{total} FCFA
+</p>
+
+</div>
+
+<button
+onClick={handleOrder}
+className="w-full mt-8 flex items-center justify-center gap-3 bg-gradient-to-r from-green-600 to-green-500 text-white py-3 rounded-xl hover:scale-[1.02] hover:shadow-lg transition font-semibold text-lg"
+>
+
+<FaTruck/>
+
+Valider la commande
+
+</button>
+
+</div>
+
+</section>
+
+</div>
+
+);
 
 }

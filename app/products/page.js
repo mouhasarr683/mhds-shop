@@ -1,69 +1,59 @@
 "use client";
 
-import { useState,useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import ProductCard from "../../components/ProductCard";
+import products from "../../data/products";
+import { useState } from "react";
 
 export default function ProductsPage(){
 
-const [products,setProducts] = useState([]);
 const [search,setSearch] = useState("");
 
-useEffect(()=>{
+const filteredProducts = products.filter(product =>{
 
-fetch("/api/products")
-.then(res=>res.json())
-.then(data=>setProducts(data))
+const text = (
+product.name +
+" " +
+product.description
+).toLowerCase();
 
-},[])
+return text.includes(search.toLowerCase());
 
-const filteredProducts = products.filter(p=>
-p.name.toLowerCase().includes(search.toLowerCase())
-);
+});
 
 return(
 
-<div className="bg-gray-50 min-h-screen">
+<div className="bg-gray-100 min-h-screen">
 
 <Navbar/>
 
-<section className="container-shop py-10">
+<section className="max-w-7xl mx-auto px-4 md:px-8 py-12">
 
-<h1 className="text-2xl md:text-4xl font-extrabold text-center text-black mb-6">
-Notre Boutique
+<h1 className="text-3xl md:text-4xl font-bold text-center text-black mb-8">
+Nos Produits
 </h1>
 
-<p className="text-center text-gray-700 mb-8">
-Découvrez tous nos produits
-</p>
+{/* BARRE RECHERCHE */}
 
-<div className="flex justify-center mb-10">
+<div className="mb-10 flex justify-center">
 
 <input
 type="text"
-placeholder="Rechercher..."
-className="w-full md:w-1/2 px-4 py-3 border rounded-lg shadow-sm text-black"
+placeholder="Rechercher un produit..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
+className="w-full max-w-lg border p-3 rounded-lg text-black"
 />
 
 </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+{/* PRODUITS */}
 
-{filteredProducts.length>0 ?
+<div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-filteredProducts.map(product=>(
+{filteredProducts.map((product)=>(
 <ProductCard key={product._id} product={product}/>
-))
-
-:
-
-<p className="text-center col-span-full text-gray-500">
-Aucun produit trouvé
-</p>
-
-}
+))}
 
 </div>
 
