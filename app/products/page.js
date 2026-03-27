@@ -2,110 +2,185 @@
 
 import Navbar from "../../components/Navbar";
 import ProductCard from "../../components/ProductCard";
-import products from "../../data/products";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { FaSearch } from "react-icons/fa";
 
 export default function ProductsPage(){
 
-const [search,setSearch] = useState("");
-const [category,setCategory] = useState("all");
-const [price,setPrice] = useState("all");
+  const [products,setProducts] = useState([]);
+  const [loading,setLoading] = useState(true);
 
-const filteredProducts = products.filter(product =>{
+  const [search,setSearch] = useState("");
+  const [category,setCategory] = useState("");
+  const [categories,setCategories] = useState([]);
 
-const text = (
-product.name +
-" " +
-product.description
-).toLowerCase();
+  const [minPrice,setMinPrice] = useState("");
+  const [maxPrice,setMaxPrice] = useState("");
 
-const matchSearch = text.includes(search.toLowerCase());
+  /* ======================
+  LOAD CATEGORIES
+  ====================== */
 
-const matchCategory =
-category === "all" || product.category === category;
+  async function loadCategories(){
+    try{
+      const res = await fetch("/api/categories");
+      const data = await res.json();
+      setCategories(data);
+    }catch(err){
+      console.log(err);
+    }
+  }
 
-const matchPrice =
-price === "all" ||
-(price === "low" && product.price < 10000) ||
-(price === "mid" && product.price >= 10000 && product.price <= 30000) ||
-(price === "high" && product.price > 30000);
+  /* ======================
+  LOAD PRODUCTS
+  ====================== */
 
-return matchSearch && matchCategory && matchPrice;
+  async function loadProducts(){
 
-});
+    try{
 
-return(
+      const params = new URLSearchParams({
+        search,
+        category,
+        minPrice,
+        maxPrice
+      });
 
-<div className="bg-gray-100 min-h-screen">
+      const res = await fetch(`/api/products?${params}`);
+      const data = await res.json();
 
-<Navbar/>
+      setProducts(data);
+      setLoading(false);
 
-<section className="max-w-7xl mx-auto px-4 md:px-8 py-10">
+    }catch(err){
+      console.log(err);
+    }
 
-<h1 className="text-2xl md:text-4xl font-bold text-center text-black mb-8">
-Nos Produits
-</h1>
+  }
 
-{/* RECHERCHE */}
+  useEffect(()=>{
+    loadProducts();
+    loadCategories();
+  },[]);
 
-<div className="flex justify-center mb-6">
+  useEffect(()=>{
+    loadProducts();
+  },[search,category,minPrice,maxPrice]);
 
-<input
-type="text"
-placeholder="Rechercher..."
-value={search}
-onChange={(e)=>setSearch(e.target.value)}
-className="w-full max-w-xs md:max-w-md border border-gray-300 p-2.5 rounded-lg text-sm md:text-base text-black focus:ring-2 focus:ring-blue-500"
-/>
+  /* ======================
+  STOCK GLOBAL PAR CATEGORIE
+  ====================== */
 
-</div>
+  const stockByCategory = products.reduce((acc,product)=>{
 
-{/* FILTRES */}
+    const total = product.variants?.reduce(
+      (sum,v)=>sum + v.stock,0
+    );
 
-<div className="flex flex-wrap gap-3 justify-center mb-8">
+    if(!acc[product.category]){
+      acc[product.category] = 0;
+    }
 
-<select
-value={category}
-onChange={(e)=>setCategory(e.target.value)}
-className="border p-2 rounded-lg text-black text-sm"
->
+    acc[product.category] += total;
 
-<option value="all">Toutes catégories</option>
-<option value="chaussures">Chaussures</option>
-<option value="tshirt">T-shirt</option>
-<option value="pantalon">Pantalons</option>
+    return acc;
 
-</select>
+  },{});
 
-<select
-value={price}
-onChange={(e)=>setPrice(e.target.value)}
-className="border p-2 rounded-lg text-black text-sm"
->
+  /* ======================
+  UI
+  ====================== */
 
-<option value="all">Tous prix</option>
-<option value="low">Moins de 10000</option>
-<option value="mid">10000 - 30000</option>
-<option value="high">Plus de 30000</option>
+  return(
 
-</select>
+    <div className="bg-gray-100 min-h-screen">
 
-</div>
+      <Navbar/>
 
-{/* PRODUITS */}
+      <section className="max-w-7xl mx-auto px-6 py-12">
 
-<div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <h1 className="text-4xl font-bold mb-6">
+          Nos Produits
+        </h1>
 
-{filteredProducts.map((product)=>(
-<ProductCard key={product._id} product={product}/>
-))}
+        {/* STOCK PAR CATEGORIE */}
+        <div className="flex flex-wrap gap-3 mb-6">
 
-</div>
+          {Object.keys(stockByCategory).map(cat=>(
+            <div
+              key={cat}
+              className="bg-white px-4 py-2 rounded-xl shadow text-sm"
+            >
+              {cat} : {stockByCategory[cat]} en stock
+            </div>
+          ))}
 
-</section>
+        </div>
 
-</div>
+        {/* RECHERCHE */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-12">
 
-)
+          <div className="grid md:grid-cols-4 gap-4">
 
+            <div className="md:col-span-2 relative">
+
+              <FaSearch className="absolute left-4 top-4 text-gray-400"/>
+
+              <input
+                type="text"
+                placeholder="Rechercher un produit..."
+                value={search}
+                onChange={(e)=>setSearch(e.target.value)}
+                className="w-full border rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+
+            </div>
+
+            <select
+              value={category}
+              onChange={(e)=>setCategory(e.target.value)}
+              className="border rounded-xl p-3"
+            >
+
+              <option value="">
+                Toutes catégories
+              </option>
+
+              {categories.map(cat=>(
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+
+            </select>
+
+          </div>
+
+        </div>
+
+        {/* LOADING */}
+        {loading && (
+          <p className="text-gray-500">
+            Chargement produits...
+          </p>
+        )}
+
+        {/* PRODUITS */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+          {products.map(product=>(
+
+            <ProductCard
+              key={product._id}
+              product={product}
+            />
+
+          ))}
+
+        </div>
+
+      </section>
+
+    </div>
+  )
 }

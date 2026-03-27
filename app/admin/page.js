@@ -1,160 +1,284 @@
 "use client";
 
-/*
-ADMIN PANEL MHDS SHOP
-Ajoute un produit dans la base de données
-*/
-
-import { useState } from "react";
-import Navbar from "../../components/Navbar";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/Navbar";
 
 export default function AdminPage() {
 
-  const [name,setName] = useState("");
-  const [price,setPrice] = useState("");
-  const [description,setDescription] = useState("");
-  const [image,setImage] = useState("");
+const router = useRouter();
 
-  const [loading,setLoading] = useState(false);
-  const [message,setMessage] = useState("");
+const [products,setProducts] = useState([]);
+const [editingId,setEditingId] = useState(null);
+const [uploading,setUploading] = useState(false);
 
-  const handleAddProduct = async () => {
+const [form,setForm] = useState({
+name:"",
+description:"",
+price:"",
+image:"",
+category:"",
+variants:""
+});
 
-    if(!name || !price || !image){
-      setMessage("Veuillez remplir les champs obligatoires");
-      return;
-    }
+/* ================= ADMIN CHECK ================= */
+useEffect(()=>{
+if(!document.cookie.includes("admin=true")){
+router.push("/login-admin");
+}
+},[]);
 
-    setLoading(true);
-    setMessage("");
+/* ================= LOAD ================= */
+async function loadProducts(){
+const res = await fetch("/api/products");
+const data = await res.json();
+setProducts(data);
+}
 
-    const newProduct = {
+useEffect(()=>{ loadProducts(); },[]);
 
-      name,
-      price:Number(price),
-      description,
-      image,
+/* ================= FORM ================= */
+function handleChange(e){
+setForm({...form,[e.target.name]:e.target.value});
+}
 
-      variants:[
-        {size:"S",stock:5},
-        {size:"M",stock:5},
-        {size:"L",stock:5}
-      ]
+/* ================= PARSE VARIANTS ================= */
+function parseVariants(input){
 
-    };
+return input.split(",").map(v=>{
+const parts = v.split(":").map(x=>x.trim());
 
-    try{
+if(parts.length === 3){
+return {
+size: parts[0],
+color: parts[1],
+stock: Number(parts[2]) || 0
+};
+}
 
-      const res = await fetch("/api/products",{
+if(parts.length === 2){
+return {
+size: parts[0],
+stock: Number(parts[1]) || 0
+};
+}
 
-        method:"POST",
+return null;
 
-        headers:{
-          "Content-Type":"application/json"
-        },
+}).filter(Boolean);
 
-        body:JSON.stringify(newProduct)
+}
 
-      });
+/* ================= SUBMIT ================= */
+async function handleSubmit(e){
+e.preventDefault();
 
-      if(res.ok){
+const variantsArray = parseVariants(form.variants);
 
-        setMessage("Produit ajouté avec succès");
+const totalStock = variantsArray.reduce((t,v)=>t+v.stock,0);
 
-        setName("");
-        setPrice("");
-        setDescription("");
-        setImage("");
+const productData = {
+name:form.name,
+description:form.description,
+price:Number(form.price),
+image:form.image,
+category:form.category,
+variants:variantsArray,
+totalStock
+};
 
-      }else{
+if(editingId){
+await fetch(`/api/products/${editingId}`,{
+method:"PUT",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify(productData)
+});
+setEditingId(null);
+}else{
+await fetch("/api/products",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify(productData)
+});
+}
 
-        setMessage("Erreur lors de l'ajout du produit");
+/* RESET */
+setForm({
+name:"",
+description:"",
+price:"",
+image:"",
+category:"",
+variants:""
+});
 
-      }
+loadProducts();
+}
 
-    }catch(error){
+/* ================= DELETE ================= */
+async function deleteProduct(id){
+if(!confirm("Supprimer ?")) return;
+await fetch(`/api/products/${id}`,{method:"DELETE"});
+loadProducts();
+}
 
-      setMessage("Erreur serveur");
+/* ================= EDIT ================= */
+function editProduct(p){
 
-    }
+setEditingId(p._id);
 
-    setLoading(false);
+const variantsString = p.variants.map(v=>{
+if(v.color) return `${v.size}:${v.color}:${v.stock}`;
+return `${v.size}:${v.stock}`;
+}).join(",");
 
-  };
+setForm({
+name:p.name,
+description:p.description,
+price:p.price,
+image:p.image,
+category:p.category,
+variants:variantsString
+});
+}
 
-  return (
+/* ================= CLOUDINARY UPLOAD ================= */
+async function handleImageUpload(e){
 
-    <div className="bg-gray-100 min-h-screen">
+const file = e.target.files[0];
+if(!file) return;
 
-      <Navbar/>
+setUploading(true);
 
-      <section className="max-w-4xl mx-auto px-6 py-16">
+const reader = new FileReader();
 
-        <h1 className="text-4xl text-black font-bold mb-10">
-          Admin Panel
-        </h1>
+reader.readAsDataURL(file);
 
-        <div className="bg-white p-8 rounded-xl shadow-md space-y-4">
+reader.onloadend = async ()=>{
 
-          <input
-            type="text"
-            placeholder="Nom du produit"
-            className="w-full border p-3 rounded-lg text-black"
-            value={name}
-            onChange={(e)=>setName(e.target.value)}
-          />
+const res = await fetch("/api/upload",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({ image: reader.result })
+});
 
-          <input
-            type="number"
-            placeholder="Prix"
-            className="w-full border p-3 rounded-lg text-black"
-            value={price}
-            onChange={(e)=>setPrice(e.target.value)}
-          />
+const data = await res.json();
 
-          <textarea
-            placeholder="Description"
-            className="w-full border p-3 rounded-lg text-black"
-            value={description}
-            onChange={(e)=>setDescription(e.target.value)}
-          />
+setForm(prev=>({
+...prev,
+image:data.url
+}));
 
-          <input
-            type="text"
-            placeholder="URL image"
-            className="w-full border p-3 rounded-lg text-black"
-            value={image}
-            onChange={(e)=>setImage(e.target.value)}
-          />
+setUploading(false);
 
-          <button
+};
 
-            onClick={handleAddProduct}
+}
 
-            disabled={loading}
+/* ================= UI ================= */
+return(
+<div className="bg-gray-100 min-h-screen">
 
-            className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition"
+<Navbar/>
 
-          >
+<section className="max-w-6xl mx-auto px-6 py-12">
 
-            {loading ? "Ajout en cours..." : "Ajouter produit"}
+<h1 className="text-3xl font-bold mb-8">Admin Dashboard</h1>
 
-          </button>
+<form onSubmit={handleSubmit}
+className="bg-white p-6 rounded-xl shadow space-y-4 mb-10">
 
-          {message && (
+<input name="name" placeholder="Nom"
+value={form.name} onChange={handleChange}
+className="w-full border p-3 rounded"/>
 
-            <p className="text-center text-sm text-green-600">
-              {message}
-            </p>
+<input name="description" placeholder="Description"
+value={form.description} onChange={handleChange}
+className="w-full border p-3 rounded"/>
 
-          )}
+<input name="price" placeholder="Prix"
+value={form.price} onChange={handleChange}
+className="w-full border p-3 rounded"/>
 
-        </div>
+<input name="category" placeholder="Categorie"
+value={form.category} onChange={handleChange}
+className="w-full border p-3 rounded"/>
 
-      </section>
+{/* UPLOAD IMAGE */}
+<input
+type="file"
+onChange={handleImageUpload}
+className="w-full border p-3 rounded"
+/>
 
-    </div>
+{uploading && (
+<p className="text-blue-500 text-sm">Upload en cours...</p>
+)}
 
-  )
+{form.image && (
+<img src={form.image}
+className="w-32 h-32 object-cover rounded"/>
+)}
 
+<input name="variants"
+placeholder="S:rouge:5,S:bleu:3,M:10"
+value={form.variants}
+onChange={handleChange}
+className="w-full border p-3 rounded"/>
+
+<button className="bg-blue-600 text-white px-6 py-3 rounded">
+{editingId ? "Modifier" : "Ajouter"}
+</button>
+
+</form>
+
+<div className="grid md:grid-cols-3 gap-6">
+
+{products.map(p=>{
+
+const total = p.variants?.reduce((t,v)=>t+v.stock,0) || 0;
+
+return(
+<div key={p._id} className="bg-white p-4 rounded-xl shadow">
+
+<img src={p.image}
+className="w-full h-40 object-cover rounded mb-3"/>
+
+<h2 className="font-bold">{p.name}</h2>
+
+<p className="text-blue-600 font-bold">{p.price} FCFA</p>
+
+<p className="text-sm text-gray-500">
+Stock total : {total}
+</p>
+
+<div className="text-xs mt-2 space-y-1">
+{p.variants?.map((v,i)=>(
+<div key={i}>
+{v.size} {v.color && `- ${v.color}`} : {v.stock}
+</div>
+))}
+</div>
+
+<div className="flex gap-2 mt-3">
+<button onClick={()=>editProduct(p)}
+className="bg-yellow-500 text-white px-3 py-1 rounded">
+Edit
+</button>
+
+<button onClick={()=>deleteProduct(p._id)}
+className="bg-red-500 text-white px-3 py-1 rounded">
+Delete
+</button>
+</div>
+
+</div>
+);
+})}
+
+</div>
+
+</section>
+</div>
+);
 }

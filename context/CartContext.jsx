@@ -7,35 +7,32 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
 
   const [cart, setCart] = useState([]);
-
   const [errorItem, setErrorItem] = useState(null);
 
-  /*
-  Ajouter au panier
-  */
+  /* ======================
+  AJOUT PANIER
+  ====================== */
 
   const addToCart = (product) => {
 
     const existingItem = cart.find(
       (item) =>
-        item.id === product.id &&
+        item._id === product._id &&
         item.size === product.size
     );
 
     if (existingItem) {
 
       if (existingItem.quantity >= product.stock) {
-
-        setErrorItem(product.id + "-" + product.size);
+        setErrorItem(product._id + "-" + product.size);
         return;
-
       }
 
       setErrorItem(null);
 
       setCart(
         cart.map((item) =>
-          item.id === product.id && item.size === product.size
+          item._id === product._id && item.size === product.size
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -52,66 +49,54 @@ export function CartProvider({ children }) {
 
   };
 
-  /*
-  Augmenter quantité
-  */
+  /* ======================
+  INCREASE
+  ====================== */
 
   const increaseQty = (id, size) => {
 
     const item = cart.find(
-      (p) => p.id === id && p.size === size
+      (p) => p._id === id && p.size === size
     );
 
     if (item.quantity >= item.stock) {
-
       setErrorItem(id + "-" + size);
       return;
-
     }
 
     setErrorItem(null);
 
     setCart(
-
       cart.map((item) =>
-
-        item.id === id && item.size === size
+        item._id === id && item.size === size
           ? { ...item, quantity: item.quantity + 1 }
           : item
-
       )
-
     );
 
   };
 
-  /*
-  Diminuer quantité
-  */
+  /* ======================
+  DECREASE
+  ====================== */
 
   const decreaseQty = (id, size) => {
 
     setErrorItem(null);
 
     setCart(
-
       cart
         .map((item) =>
-
-          item.id === id && item.size === size
+          item._id === id && item.size === size
             ? { ...item, quantity: item.quantity - 1 }
             : item
-
         )
         .filter((item) => item.quantity > 0)
-
     );
 
   };
 
-  /*
-  Calcul nombre produits
-  */
+  const clearCart = () => setCart([]);
 
   const cartCount = cart.reduce(
     (total, item) => total + item.quantity,
@@ -119,7 +104,6 @@ export function CartProvider({ children }) {
   );
 
   return (
-
     <CartContext.Provider
       value={{
         cart,
@@ -127,14 +111,12 @@ export function CartProvider({ children }) {
         increaseQty,
         decreaseQty,
         cartCount,
-        errorItem
+        errorItem,
+        clearCart
       }}
     >
-
       {children}
-
     </CartContext.Provider>
-
   );
 
 }

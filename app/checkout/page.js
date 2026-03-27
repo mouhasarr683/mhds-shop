@@ -8,7 +8,7 @@ import { FaTruck } from "react-icons/fa";
 
 export default function CheckoutPage() {
 
-const { cart } = useCart();
+const { cart, clearCart } = useCart();
 const router = useRouter();
 
 const [firstName,setFirstName] = useState("");
@@ -60,7 +60,44 @@ cart.forEach((item)=>{
 products += `${item.name} (${item.size}) x${item.quantity} - ${item.price * item.quantity} FCFA\n`;
 });
 
-/* ENVOI EMAIL ADMIN */
+
+/* =========================
+ENREGISTRER COMMANDE DB
+========================= */
+
+await fetch("/api/orders",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+customerName:`${firstName} ${lastName}`,
+phone:phone,
+city:city,
+address:address,
+
+items:cart.map(item=>({
+productId:item._id,
+name:item.name,
+size:item.size,
+price:item.price,
+quantity:item.quantity
+})),
+
+total:total
+
+})
+
+});
+
+
+/* =========================
+ENVOI EMAIL ADMIN
+========================= */
 
 await fetch("https://formsubmit.co/ajax/mouhasarr676@gmail.com", {
 
@@ -87,6 +124,13 @@ total:total
 })
 
 });
+
+
+/* =========================
+VIDER PANIER
+========================= */
+
+clearCart();
 
 /* REDIRECTION CLIENT */
 

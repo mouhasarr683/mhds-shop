@@ -1,33 +1,77 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const VariantSchema = new mongoose.Schema({
 
-if (!MONGODB_URI) {
-  throw new Error("Veuillez définir MONGODB_URI dans .env.local");
-}
+  size:{
+    type:String,
+    required:true
+  },
 
-let cached = global.mongoose;
+  color:{
+    type:String, // 🔥 PRET POUR COULEUR
+    default:null
+  },
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function dbConnect() {
-
-  if (cached.conn) return cached.conn;
-
-  if (!cached.promise) {
-
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
-
+  stock:{
+    type:Number,
+    required:true,
+    default:0
   }
 
-  cached.conn = await cached.promise;
+});
 
-  return cached.conn;
+const ProductSchema = new mongoose.Schema({
 
-}
+  name:{
+    type:String,
+    required:true
+  },
 
-export default dbConnect;
+  description:String,
+
+  price:{
+    type:Number,
+    required:true
+  },
+
+  image:{
+    type:String,
+    required:true
+  },
+
+  category:String,
+
+  variants:{
+    type:[VariantSchema],
+    default:[]
+  },
+
+  totalStock:{
+    type:Number,
+    default:0
+  },
+
+  discount:{
+    type:Number,
+    default:0
+  },
+
+  promoStart:Date,
+  promoEnd:Date,
+
+  bestSeller:{
+    type:Boolean,
+    default:false
+  },
+
+  isNewProduct:{
+    type:Boolean,
+    default:true
+  }
+
+},{
+  timestamps:true
+});
+
+export default mongoose.models.Product ||
+mongoose.model("Product",ProductSchema);
